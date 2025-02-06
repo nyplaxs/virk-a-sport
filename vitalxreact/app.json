@@ -1,0 +1,62 @@
+
+{
+  "expo": {
+    "name": "VitalX 🌀",
+    "slug": "vitalx-app",
+    "version": "1.0.0",
+    "description": "Une application de réseau social dynamique pour VitalX 🚀.",
+    "platforms": ["ios", "android", "web"],
+    "assetBundlePatterns": ["**/*"],
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
+    },
+    "ios": {
+      "bundleIdentifier": "com.vitalx.app",
+      "buildNumber": "1.0.0",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Cette application a besoin d'accéder à votre caméra pour prendre des photos.",
+        "NSPhotoLibraryUsageDescription": "Cette application a besoin d'accéder à vos photos pour les partager."
+      },
+      "icon": "./assets/ios-icon.png",
+      "launchScreen": {
+        "image": "./assets/ios-splash.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "android": {
+      "package": "com.vitalx.app",
+      "versionCode": 1,
+      "permissions": ["CAMERA", "ACCESS_FINE_LOCATION", "READ_EXTERNAL_STORAGE"],
+      "icon": "./assets/android-icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-foreground.png",
+        "backgroundColor": "#ffffff"
+      },
+      "splash": {
+        "backgroundColor": "#ffffff",
+        "image": "./assets/android-splash.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "backgroundColor": "#ffffff"
+    },
+    "extra": {
+      "apiUrl": "https://api.vitalx.com",
+      "authKey": "abcd1234efgh5678"
+    },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#000000"
+    },
+    "scheme": "vitalxapp"
+  }
+}

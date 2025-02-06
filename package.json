@@ -4,17 +4,34 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
+    "@react-navigation/native": "^7.0.14",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "mongoose": "^8.8.3"
-  }
+    "express-list-endpoints": "^7.1.1",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.3",
+    "morgan": "^1.10.0",
+    "react-native-gesture-handler": "^2.21.2",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-paper": "^5.12.5",
+    "react-native-reanimated": "^3.16.5",
+    "react-native-safe-area-context": "^5.0.0",
+    "react-native-screens": "^4.3.0",
+    "react-native-vector-icons": "^10.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  },
+  "description": ""
 }

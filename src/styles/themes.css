@@ -1,0 +1,43 @@
+/* themes.css */
+
+/* Variables de couleur */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #28a745;
+    --danger-color: #dc3545;
+    --background-color: #f4f4f4;
+    --text-color: #333;
+    --card-background: white;
+  }
+  
+  /* Thème clair */
+  .theme-light {
+    --background-color: #f4f4f4;
+    --text-color: #333;
+    --card-background: white;
+  }
+  
+  /* Thème sombre */
+  .theme-dark {
+    --background-color: #121212;
+    --text-color: #e0e0e0;
+    --card-background: #333;
+  }
+  
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+  
+  .card-user {
+    background-color: var(--card-background);
+  }
+  
+  .button-primary {
+    background-color: var(--primary-color);
+  }
+  
+  .button-primary:hover {
+    background-color: darken(var(--primary-color), 10%);
+  }
+  
