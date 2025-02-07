@@ -1,195 +1,99 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Button, TextInput, Text } from 'react-native';
-import { GiftedChat } from 'react-native-gifted-chat';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, ActivityIndicator, Alert } from 'react-native';
+import { GiftedChat, Bubble, Send, InputToolbar, Actions } from 'react-native-gifted-chat';
+import { getMessages, sendMessage, sendImage, sendVoiceMessage } from '../api/chatApi';
 import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import { Ionicons } from '@expo/vector-icons';
+import AudioRecorder from '../components/AudioRecorder';
+import { useRoute } from '@react-navigation/native';
+import styles from '../styles/globalStyles';
 
 const MessageScreen = () => {
   const [messages, setMessages] = useState([]);
-  const [userId, setUserId] = useState(1);
-  const [image, setImage] = useState(null);
-  const [quotedMessage, setQuotedMessage] = useState(null);
-  const [privateUserId, setPrivateUserId] = useState(null);
-  const [mention, setMention] = useState(null);
-  const [messageText, setMessageText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
+  const route = useRoute();
+  const { chatId, user } = route.params;
 
   useEffect(() => {
-    setMessages([
-      {
-        _id: 1,
-        text: 'Bienvenue sur VitalX !',
-        createdAt: new Date(),
-        user: { _id: 2, name: 'Admin' },
-      },
-    ]);
+    const fetchMessages = async () => {
+      try {
+        const data = await getMessages(chatId);
+        setMessages(data);
+      } catch (error) {
+        Alert.alert('Erreur', 'Impossible de charger les messages.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, [chatId]);
+
+  const onSend = useCallback(async (newMessages = []) => {
+    setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessages));
+    await sendMessage(chatId, newMessages[0]);
   }, []);
 
-  const onSend = useCallback((newMessages = []) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, newMessages)
-    );
-  }, []);
-
-  const handleImagePick = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permission.granted) {
-      let result = await ImagePicker.launchImageLibraryAsync({ quality: 1 });
-      if (!result.canceled) {
-        setImage(result.uri);
-        onSend([
-          {
-            _id: Math.round(Math.random() * 1000000),
-            text: '',
-            createdAt: new Date(),
-            user: { _id: userId },
-            image: result.uri,
-          },
-        ]);
-      }
-    }
-  };
-
-  const handleFilePick = async () => {
-    const result = await DocumentPicker.getDocumentAsync({});
-    if (result.type === 'success') {
-      onSend([
-        {
-          _id: Math.round(Math.random() * 1000000),
-          text: `Fichier: ${result.name}`,
-          createdAt: new Date(),
-          user: { _id: userId },
-          file: result.uri,
-        },
-      ]);
-    }
-  };
-
-  const handleReply = (message) => {
-    setQuotedMessage(message);
-  };
-
-  const renderFooter = () => {
-    if (quotedMessage) {
-      return (
-        <View style={styles.quotedMessage}>
-          <Text>{`Répondre à: ${quotedMessage.text}`}</Text>
-          <Button title="Annuler" onPress={() => setQuotedMessage(null)} />
-        </View>
-      );
-    }
-    return null;
-  };
-
-  const handleReaction = (messageId, emoji) => {
-    const updatedMessages = messages.map((message) => {
-      if (message._id === messageId) {
-        message.reactions = message.reactions || [];
-        message.reactions.push(emoji);
-      }
-      return message;
+  // 📷 Fonction pour envoyer une image
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
     });
-    setMessages(updatedMessages);
-  };
 
-  const renderMessage = (props) => {
-    const { currentMessage } = props;
-    return (
-      <View>
-        <GiftedChat.renderMessage {...props} />
-        <View style={styles.reactions}>
-          <Ionicons
-            name="thumbs-up"
-            size={20}
-            color="green"
-            onPress={() => handleReaction(currentMessage._id, '👍')}
-          />
-          <Ionicons
-            name="heart"
-            size={20}
-            color="red"
-            onPress={() => handleReaction(currentMessage._id, '❤️')}
-          />
-        </View>
-      </View>
-    );
-  };
-
-  const handleMention = (text) => {
-    const mentionRegex = /@(\w+)/g;
-    const matches = text.match(mentionRegex);
-    if (matches) {
-      setMention(matches);
-    }
-  };
-
-  const handlePrivateMessage = (text) => {
-    if (privateUserId) {
-      onSend([
-        {
-          _id: Math.round(Math.random() * 1000000),
-          text: text,
-          createdAt: new Date(),
-          user: { _id: userId },
-          private: true,
-          recipient: privateUserId,
+    if (!result.canceled) {
+      const imageMessage = {
+        _id: Math.random().toString(),
+        createdAt: new Date(),
+        user: {
+          _id: user.id,
+          name: user.name,
+          avatar: user.avatar,
         },
-      ]);
+        image: result.assets[0].uri,
+      };
+      setMessages((prevMessages) => GiftedChat.append(prevMessages, [imageMessage]));
+      await sendImage(chatId, result.assets[0].uri);
     }
   };
 
   return (
     <View style={styles.container}>
-      <GiftedChat
-        messages={messages}
-        onSend={onSend} // Unique onSend
-        user={{ _id: userId }}
-        renderMessage={renderMessage}
-        renderFooter={renderFooter}
-        text={messageText}
-        onInputTextChanged={setMessageText}
-        renderActions={() => (
-          <View style={styles.actions}>
-            <Button title="Ajouter Image" onPress={handleImagePick} />
-            <Button title="Ajouter Fichier" onPress={handleFilePick} />
-            <Ionicons
-              name="happy-outline"
-              size={30}
-              color="white"
-              onPress={() => handleReaction(null, '😊')}
-              style={styles.emojiButton}
+      {loading ? (
+        <ActivityIndicator size="large" color="#007AFF" />
+      ) : (
+        <GiftedChat
+          messages={messages}
+          onSend={(messages) => onSend(messages)}
+          user={{ _id: user.id, name: user.name, avatar: user.avatar }}
+          isTyping={isTyping}
+          renderBubble={(props) => (
+            <Bubble
+              {...props}
+              wrapperStyle={{ right: { backgroundColor: '#007AFF' }, left: { backgroundColor: '#e5e5ea' } }}
             />
-          </View>
-        )}
-      />
+          )}
+          renderSend={(props) => (
+            <Send {...props}>
+              <View style={{ marginRight: 10, marginBottom: 5 }}>
+                <Text style={{ color: '#007AFF', fontWeight: 'bold' }}>Envoyer</Text>
+              </View>
+            </Send>
+          )}
+          renderActions={() => (
+            <Actions
+              icon={() => <Text style={{ fontSize: 20 }}>📷</Text>}
+              onPressActionButton={pickImage}
+            />
+          )}
+          renderInputToolbar={(props) => <InputToolbar {...props} />}
+          renderFooter={() => <AudioRecorder onSend={sendVoiceMessage} />}
+        />
+      )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingBottom: 10,
-  },
-  emojiButton: {
-    marginRight: 10,
-  },
-  quotedMessage: {
-    backgroundColor: '#ccc',
-    padding: 10,
-    marginBottom: 10,
-  },
-  reactions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 5,
-  },
-});
-
 export default MessageScreen;
+
