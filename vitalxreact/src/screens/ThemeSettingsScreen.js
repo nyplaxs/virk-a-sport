@@ -1,21 +1,18 @@
 import React, { useContext } from 'react';
-import { View, Text, Switch, StyleSheet } from 'react-native';
+import { View, Switch, Text } from 'react-native';
 import { ThemeContext } from '../context/ThemeContext';
+import styles from '../styles/globalStyles';
 
 const ThemeSettingsScreen = () => {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, toggleTheme } = useContext(ThemeContext);
 
   return (
-    <View style={[styles.container, { backgroundColor: darkMode ? '#121212' : '#fff' }]}>
-      <Text style={[styles.text, { color: darkMode ? 'white' : 'black' }]}>Mode sombre</Text>
-      <Switch value={darkMode} onValueChange={toggleDarkMode} />
+    <View style={styles.container}>
+      <Text style={styles.title}>Mode {isDarkMode ? 'Sombre' : 'Clair'}</Text>
+      <Switch value={isDarkMode} onValueChange={toggleTheme} />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  text: { fontSize: 18 },
-});
-
 export default ThemeSettingsScreen;
+
