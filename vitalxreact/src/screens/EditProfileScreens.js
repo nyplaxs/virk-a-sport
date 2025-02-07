@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, Button, Image, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { AuthContext } from '../context/AuthContext';
 
 const EditProfileScreen = ({ navigation }) => {
-  const [username, setUsername] = useState('Noa');
-  const [bio, setBio] = useState('Développeur VitalX');
-  const [profileImage, setProfileImage] = useState(null);
+  const { user, updateUser } = useContext(AuthContext);
+  const [username, setUsername] = useState(user.username);
+  const [bio, setBio] = useState(user.bio);
+  const [profileImage, setProfileImage] = useState(user.profileImage);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync();
     if (!result.canceled) setProfileImage(result.uri);
+  };
+
+  const handleSave = () => {
+    updateUser({ username, bio, profileImage });
+    navigation.goBack();
   };
 
   return (
@@ -18,7 +25,7 @@ const EditProfileScreen = ({ navigation }) => {
       <Button title="Changer la photo de profil" onPress={pickImage} />
       <TextInput style={styles.input} value={username} onChangeText={setUsername} placeholder="Nom d'utilisateur" />
       <TextInput style={styles.input} value={bio} onChangeText={setBio} placeholder="Bio" />
-      <Button title="Enregistrer" onPress={() => navigation.goBack()} />
+      <Button title="Enregistrer" onPress={handleSave} />
     </View>
   );
 };
