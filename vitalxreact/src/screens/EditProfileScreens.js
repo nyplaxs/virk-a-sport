@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, Image, Alert, ActivityIndicator } from '
 import * as ImagePicker from 'expo-image-picker';
 import { UserContext } from '../context/UserContext';
 import styles from '../styles/globalStyles';
+import { uploadImageToFirebase } from '../api/userApi';
 
 const EditProfileScreen = () => {
   const { user, updateProfile } = useContext(UserContext);
@@ -17,7 +18,8 @@ const EditProfileScreen = () => {
       return;
     }
     setLoading(true);
-    const success = await updateProfile({ name, bio, avatar: image });
+    const imageUrl = image.startsWith('file://') ? await uploadImageToFirebase(image) : image;
+    const success = await updateProfile({ name, bio, avatar: imageUrl });
     setLoading(false);
     Alert.alert(success ? 'Succès' : 'Erreur', success ? 'Profil mis à jour' : 'Échec de la mise à jour.');
   };
