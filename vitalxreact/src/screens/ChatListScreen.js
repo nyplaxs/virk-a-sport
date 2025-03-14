@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, Text, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, FlatList, Text, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getChatList } from '../api/chatApi';
 import ChatItem from '../components/ChatItem';
 import styles from '../styles/globalStyles';
@@ -37,11 +38,17 @@ const ChatListScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {isLoading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#00ff99" />
       ) : error ? (
-        <Text>{error}</Text>
+        <View style={styles.errorContainer}>
+          <Icon name="alert-circle" size={40} color="red" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={fetchChats} style={styles.retryButton}>
+            <Text style={styles.retryText}>Réessayer</Text>
+          </TouchableOpacity>
+        </View>
       ) : chats.length === 0 ? (
-        <Text style={styles.noChatsText}>Pas encore de discussions. Commencez à discuter avec vos contacts !</Text>
+        <Text style={styles.noChatsText}>Aucune discussion. Rejoignez un groupe sportif !</Text>
       ) : (
         <FlatList
           data={chats}
@@ -53,7 +60,7 @@ const ChatListScreen = ({ navigation }) => {
             />
           )}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#00ff99"]} />
           }
         />
       )}
