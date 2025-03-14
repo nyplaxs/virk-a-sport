@@ -3,7 +3,27 @@ import { View, Text, TextInput, Button, Image, Alert, ActivityIndicator } from '
 import * as ImagePicker from 'expo-image-picker';
 import { UserContext } from '../context/UserContext';
 import styles from '../styles/globalStyles';
-import { uploadImageToFirebase } from '../api/userApi';
+
+const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload';
+const UPLOAD_PRESET = 'YOUR_UPLOAD_PRESET';
+
+const uploadImageToCloudinary = async (imageUri) => {
+  const data = new FormData();
+  data.append('file', { uri: imageUri, type: 'image/jpeg', name: 'upload.jpg' });
+  data.append('upload_preset', UPLOAD_PRESET);
+
+  try {
+    let response = await fetch(CLOUDINARY_UPLOAD_URL, {
+      method: 'POST',
+      body: data,
+    });
+    let result = await response.json();
+    return result.secure_url;
+  } catch (error) {
+    console.error('Erreur de téléversement Cloudinary:', error);
+    return null;
+  }
+};
 
 const EditProfileScreen = () => {
   const { user, updateProfile } = useContext(UserContext);
@@ -18,7 +38,12 @@ const EditProfileScreen = () => {
       return;
     }
     setLoading(true);
-    const imageUrl = image.startsWith('file://') ? await uploadImageToFirebase(image) : image;
+    const imageUrl = image.startsWith('file://') ? await uploadImageToCloudinary(image) : image;
+    if (!imageUrl) {
+      setLoading(false);
+      Alert.alert('Erreur', "Échec de l'upload de l'image.");
+      return;
+    }
     const success = await updateProfile({ name, bio, avatar: imageUrl });
     setLoading(false);
     Alert.alert(success ? 'Succès' : 'Erreur', success ? 'Profil mis à jour' : 'Échec de la mise à jour.');
@@ -37,7 +62,7 @@ const EditProfileScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Modifier le profil</Text>
-      <Image source={{ uri: image }} style={styles.avatar} />
+      {image ? <Image source={{ uri: image }} style={styles.avatar} /> : null}
       <Button title="Changer la photo" onPress={pickImage} />
       <TextInput style={styles.input} placeholder="Nom" value={name} onChangeText={setName} />
       <TextInput style={styles.input} placeholder="Bio" value={bio} onChangeText={setBio} />
@@ -47,4 +72,3 @@ const EditProfileScreen = () => {
 };
 
 export default EditProfileScreen;
-
