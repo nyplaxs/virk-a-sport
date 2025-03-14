@@ -1,4 +1,3 @@
-// src/screens/CreatePostScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -11,10 +10,15 @@ import {
   ScrollView,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { db, storage } from '../firebaseConfig';
+import { collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { uuidv4 } from '@firebase/util';
 
 const CreatePostScreen = () => {
   const [postContent, setPostContent] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   // Gestion de la sélection d'image
   const pickImage = async () => {
@@ -36,20 +40,69 @@ const CreatePostScreen = () => {
     }
   };
 
+  // Fonction pour uploader l'image sur Firebase Storage
+  const uploadImageToFirebase = async (imageUri) => {
+    try {
+      setUploading(true);
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      const fileName = `images/${uuidv4()}.jpg`; // Générer un ID unique
+      const storageRef = ref(storage, fileName);
+
+      const uploadTask = uploadBytesResumable(storageRef, blob);
+
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log(`Upload progress: ${progress.toFixed(2)}%`);
+          },
+          (error) => {
+            console.error('Erreur lors du téléchargement :', error);
+            setUploading(false);
+            reject(error);
+          },
+          async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setUploading(false);
+            resolve(downloadURL);
+          }
+        );
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'upload :', error);
+      setUploading(false);
+      throw error;
+    }
+  };
+
   // Gestion de la publication
-  const handlePost = () => {
+  const handlePost = async () => {
     if (!postContent.trim() && !selectedImage) {
       Alert.alert('Erreur', 'Veuillez ajouter un contenu ou une image.');
       return;
     }
 
-    // Logique pour publier (exemple)
-    console.log('Contenu :', postContent);
-    console.log('Image :', selectedImage);
+    try {
+      let imageUrl = null;
+      if (selectedImage) {
+        imageUrl = await uploadImageToFirebase(selectedImage);
+      }
 
-    Alert.alert('Succès', 'Votre publication a été créée !');
-    setPostContent('');
-    setSelectedImage(null);
+      await addDoc(collection(db, 'posts'), {
+        content: postContent,
+        imageUrl: imageUrl,
+        createdAt: new Date().toISOString(),
+      });
+
+      Alert.alert('Succès', 'Votre publication a été créée !');
+      setPostContent('');
+      setSelectedImage(null);
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du post :', error);
+      Alert.alert('Erreur', 'Impossible de publier.');
+    }
   };
 
   return (
@@ -79,8 +132,14 @@ const CreatePostScreen = () => {
       )}
 
       {/* Bouton de publication */}
-      <TouchableOpacity style={styles.postButton} onPress={handlePost}>
-        <Text style={styles.postButtonText}>Publier</Text>
+      <TouchableOpacity
+        style={[styles.postButton, uploading && { backgroundColor: '#888' }]}
+        onPress={handlePost}
+        disabled={uploading}
+      >
+        <Text style={styles.postButtonText}>
+          {uploading ? 'Publication en cours...' : 'Publier'}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -144,3 +203,4 @@ const styles = StyleSheet.create({
 });
 
 export default CreatePostScreen;
+
