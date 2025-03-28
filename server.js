@@ -1,84 +1,62 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const morgan = require('morgan'); // Pour gérer les logs HTTP
+const functions = require("firebase-functions");
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const morgan = require("morgan");
 
-// Importation des routes
-const activityRoutes = require('./routes/activityRoutes');
-const challengeRoutes = require('./routes/challengeRoutes');
-const commentRoutes = require('./routes/commentRoutes');
-const eventRoutes = require('./routes/eventRoutes');
-const postRoutes = require('./routes/postRoutes');
-const userRoutes = require('./routes/userRoutes');
-const searchRoutes = require('./routes/searchRoutes'); // Route supplémentaire pour les recherches
-
-// Configuration de l'environnement
 dotenv.config();
 
-// Initialisation de l'application
 const app = express();
-
-// Middleware pour les données JSON et CORS
-app.use(express.json());
 app.use(cors());
-app.use(morgan('dev')); // Utilisation de morgan pour enregistrer les requêtes HTTP
+app.use(express.json());
+app.use(morgan("dev"));
 
-// Connexion à MongoDB
+// Connexion MongoDB
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('🗄️ Connecté à MongoDB');
+    console.log("\uD83D\uDCC4 Connecté à MongoDB");
   } catch (err) {
-    console.error('❌ Erreur de connexion à MongoDB:', err.message);
-    process.exit(1); // Arrêter le serveur en cas d'erreur de connexion
+    console.error("❌ Erreur MongoDB:", err);
   }
 };
-
-// Gestion des événements de la connexion MongoDB
-mongoose.connection.on('connected', () => {
-  console.log('🗄️ Connecté à MongoDB');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('❌ Erreur MongoDB:', err);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('🔌 Déconnecté de MongoDB');
-});
-
-// Appel de la fonction de connexion à la base de données
 connectDB();
 
-// Routes principales
-app.use('/api/activities', activityRoutes);
-app.use('/api/challenges', challengeRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/search', searchRoutes); // Route pour la recherche
+// Importation des routes
+const activityRoutes = require("./routes/activityRoutes");
+const challengeRoutes = require("./routes/challengeRoutes");
+const commentRoutes = require("./routes/commentRoutes");
+const eventRoutes = require("./routes/eventRoutes");
+const postRoutes = require("./routes/postRoutes");
+const userRoutes = require("./routes/userRoutes");
+const searchRoutes = require("./routes/searchRoutes");
 
-// Gestion des erreurs 404 (Route non trouvée)
+// Définition des routes
+app.use("/api/activities", activityRoutes);
+app.use("/api/challenges", challengeRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/search", searchRoutes);
+
+// Gestion des erreurs 404
 app.use((req, res, next) => {
-  res.status(404).json({ message: 'Ressource non trouvée.' });
+  res.status(404).json({ message: "Ressource non trouvée." });
 });
 
-// Gestion des erreurs globales (Erreurs internes du serveur)
+// Gestion des erreurs globales
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
-    message: 'Erreur interne du serveur',
+    message: "Erreur interne du serveur",
     error: err.message,
   });
 });
 
-// Démarrage du serveur
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
-});
+// Déploiement via Firebase Functions
+exports.api = functions.https.onRequest(app);
