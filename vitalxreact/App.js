@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider, AuthContext } from './context/AuthContext';
 import AuthService from './services/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -14,16 +15,43 @@ import ProfileScreen from './screens/ProfileScreen';
 import CreatePostScreen from './screens/CreatePostScreen';
 import SearchScreen from './screens/SearchScreen';
 
+// Import des icônes
+import { Ionicons } from '@expo/vector-icons';
+
 // Navigation
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const MainTabs = () => (
   <Tab.Navigator screenOptions={{ headerShown: false }}>
-    <Tab.Screen name="Accueil" component={HomeScreen} />
-    <Tab.Screen name="Rechercher" component={SearchScreen} />
-    <Tab.Screen name="Créer" component={CreatePostScreen} />
-    <Tab.Screen name="Profil" component={ProfileScreen} />
+    <Tab.Screen
+      name="Accueil"
+      component={HomeScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => <Ionicons name="home" color={color} size={size} />,
+      }}
+    />
+    <Tab.Screen
+      name="Rechercher"
+      component={SearchScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => <Ionicons name="search" color={color} size={size} />,
+      }}
+    />
+    <Tab.Screen
+      name="Créer"
+      component={CreatePostScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => <Ionicons name="add-circle" color={color} size={size} />,
+      }}
+    />
+    <Tab.Screen
+      name="Profil"
+      component={ProfileScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => <Ionicons name="person" color={color} size={size} />,
+      }}
+    />
   </Tab.Navigator>
 );
 
@@ -34,23 +62,12 @@ const AuthStack = () => (
 );
 
 export default function App() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const { user, isLoading } = useContext(AuthContext); // Utilisation du contexte Auth
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const authenticatedUser = await AuthService.getCurrentUser();
-        setUser(authenticatedUser);
-      } catch (error) {
-        console.log('Erreur de connexion :', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
+  // Gestion des erreurs avec alertes
+  const showError = (message) => {
+    Alert.alert("Erreur", message, [{ text: "OK" }]);
+  };
 
   if (isLoading) {
     return (
@@ -68,30 +85,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-import AuthService from "./services/authService";
-
-// Exemple d'inscription
-const handleRegister = async () => {
-  try {
-    const user = await AuthService.register("test@example.com", "password123");
-    console.log("Utilisateur inscrit :", user);
-  } catch (error) {
-    console.error("Erreur:", error.message);
-  }
-};
-
-// Exemple de connexion
-const handleLogin = async () => {
-  try {
-    const user = await AuthService.login("test@example.com", "password123");
-    console.log("Utilisateur connecté :", user);
-  } catch (error) {
-    console.error("Erreur:", error.message);
-  }
-};
-
-// Exemple de déconnexion
-const handleLogout = async () => {
-  await AuthService.logout();
-  console.log("Utilisateur déconnecté");
-};
