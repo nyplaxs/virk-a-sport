@@ -1,20 +1,19 @@
-// db.js
 const mongoose = require('mongoose');
 
-// URL de connexion à la base de données MongoDB
-const dbURI = 'mongodb://localhost/vitalx'; // Remplace par l'URL de ta DB
+// URL de connexion MongoDB
+const mongoURI = 'mongodb+srv://Noa:rKU2C9mIgoX2LG9f@cluster0.pk36gq6.mongodb.net/?retryWrites=true&w=majority';
 
-// Fonction pour connecter à MongoDB
+// Connexion à MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(dbURI, {
+    await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('Connexion à MongoDB réussie');
+    console.log('Connexion à MongoDB réussie.');
   } catch (err) {
-    console.error('Erreur de connexion à MongoDB', err);
-    process.exit(1); // Arrêter l'application si la connexion échoue
+    console.error('Erreur de connexion à MongoDB :', err.message);
+    process.exit(1); // Quitter le processus en cas d'erreur
   }
 };
 
