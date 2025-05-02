@@ -1,6 +1,9 @@
 require('dotenv').config();
 
 module.exports = {
-  dbURI: process.env.DB_URI, // URI de connexion à MongoDB Atlas
-  port: process.env.PORT || 3000, // Port d'écoute avec une valeur par défaut de 3000
+  // URL de connexion à MongoDB Atlas
+  dbURI: process.env.DB_URI || 'mongodb+srv://Noa:rKU2C9mIgoX2LG9f@cluster0.pk36gq6.mongodb.net/vitalx?retryWrites=true&w=majority',
+  
+  // Port d'écoute pour l'application
+  port: process.env.PORT || 5000,
 };
