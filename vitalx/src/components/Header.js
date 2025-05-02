@@ -2,21 +2,28 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-const Header = ({ title, showBackButton = false }) => {
+const Header = ({ title, showBackButton = false, containerStyle, titleStyle }) => {
   const navigation = useNavigation();
 
   const handleBackPress = () => {
-    navigation.goBack(); // Revenir à la page précédente
+    if (navigation && navigation.goBack) {
+      navigation.goBack(); // Revenir à la page précédente
+    }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {showBackButton && (
-        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+        <TouchableOpacity 
+          onPress={handleBackPress} 
+          style={styles.backButton}
+          accessible={true}
+          accessibilityLabel="Retour"
+        >
           <Text style={styles.backText}>{"<"}</Text>
         </TouchableOpacity>
       )}
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, titleStyle]}>{title}</Text>
     </View>
   );
 };
