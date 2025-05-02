@@ -1,5 +1,6 @@
-# URI de connexion à MongoDB Atlas (sans clé ou mot de passe)
-DB_URI=mongodb+srv://cluster0.pk36gq6.mongodb.net/vitalx?retryWrites=true&w=majority
+require('dotenv').config();
 
-# Port d'écoute pour l'application
-PORT=5000
+module.exports = {
+  dbURI: process.env.DB_URI, // URI de connexion à MongoDB Atlas
+  port: process.env.PORT || 3000, // Port d'écoute avec une valeur par défaut de 3000
+};
